@@ -1,97 +1,40 @@
-import MapboxGl from "mapbox-gl/dist/mapbox-gl.js";
-import React, { Component, PropTypes } from "react";
-import { render, unmountComponentAtNode } from "react-dom";
+import React, { PropTypes } from 'react';
+import ProjectedLayer from './projected-layer';
+import {
+  anchors,
+  OverlayPropTypes,
+} from './util/overlays';
 
-export default class Popup extends Component {
-  static contextTypes = {
-    map: PropTypes.object
-  };
-
+export default class Popup extends React.Component {
   static propTypes = {
     coordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
-    dangerouslySetInnerHTML: PropTypes.string,
-    text: PropTypes.string,
-    closeButton: PropTypes.bool,
-    closeOnClick: PropTypes.bool,
-    anchor: PropTypes.oneOf([
-      "top",
-      "bottom",
-      "left",
-      "right",
-      "top-left",
-      "top-right",
-      "bottom-left",
-      "bottom-right"
-    ])
-  }
+    anchor: OverlayPropTypes.anchor,
+    offset: OverlayPropTypes.offset,
+    children: PropTypes.node,
+    onClick: PropTypes.func,
+    style: PropTypes.object,
+  };
 
-  div = document.createElement("div");
-  popup = new MapboxGl.Popup({
-    closeButton: this.props.closeButton,
-    closeOnClick: this.props.closeOnClick,
-    anchor: this.props.anchor
-  });
-
-  componentWillMount() {
-    const { div, popup } = this;
-    const { map } = this.context;
-    const {
-      coordinates,
-      children,
-      dangerouslySetInnerHTML,
-      text
-    } = this.props;
-
-    if (children) {
-      popup.setDOMContent(div);
-    } else if (dangerouslySetInnerHTML) {
-      popup.setHTML(dangerouslySetInnerHTML);
-    } else {
-      popup.setText(text || "");
-    }
-
-    popup.setLngLat(coordinates);
-
-    render(children, div, () => {
-      popup.addTo(map);
-    });
-  }
-
-  componentWillReceiveProps(nextProps) {
-    const { popup, div } = this;
-    const {
-      children,
-      coordinates,
-      dangerouslySetInnerHTML,
-      text
-    } = nextProps;
-
-    if (!children) {
-      if (
-        this.props.dangerouslySetInnerHTML &&
-        dangerouslySetInnerHTML !== this.props.dangerouslySetInnerHTML
-      ) {
-        popup.setHTML(dangerouslySetInnerHTML);
-      } else if (text !== this.props.text) {
-        popup.setText(text);
-      }
-    } else {
-      render(children, div);
-    }
-
-    if (this.props.coordinates !== coordinates) {
-      popup.setLngLat(coordinates);
-    }
-  }
-
-  componentWillUnmount() {
-    const { popup, div } = this;
-    popup.remove();
-    unmountComponentAtNode(div);
-  }
+  static defaultProps = {
+    anchor: anchors[0],
+  };
 
   render() {
-    return null;
+    const { coordinates, anchor, offset, onClick, children, style } = this.props;
+
+    return (
+      <ProjectedLayer
+        style={style}
+        onClick={onClick}
+        offset={offset}
+        anchor={anchor}
+        coordinates={coordinates}
+        className={`mapboxgl-popup mapboxgl-popup-anchor-${anchor}`}>
+        <div className="mapboxgl-popup-tip"></div>
+        <div className="mapboxgl-popup-content">
+          { children }
+        </div>
+      </ProjectedLayer>
+    );
   }
 }
-

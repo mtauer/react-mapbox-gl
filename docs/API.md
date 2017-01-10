@@ -21,6 +21,7 @@ import ReactMapboxGl from "react-mapbox-gl";
 - **minZoom** *(Default: `0`)*: `Number` Minimum zoom level. Must be between 0 and 20.
 - **maxZoom** *(Default: `20`)*: `Number` Maximum zoom level. Must be between 0 and 20.
 - **maxBounds** : `LngLatBounds | Array<Array<number>>` If set, the map is constrained to the given bounds [SouthWest, NorthEast]
+- **fitBounds** : `Array<Array<number>>` If set, the map will center on the given coordinates, [fitBounds](https://www.mapbox.com/mapbox-gl-js/api/#Map#fitBounds)
 - **bearing** *(Default: `0`)*: `Number` Bearing (rotation) of the map at initialisation measured in degrees counter-clockwise from north.
   - Check the previous value and the new one, if the value changed update the bearing value [flyTo](https://www.mapbox.com/mapbox-gl-js/api/#Map.flyTo)
 - **pitch** *(Default: `0`)*: `Number` Pitch (tilt) of the map at initialisation, range : `0 - 60`
@@ -53,7 +54,7 @@ import ReactMapboxGl from "react-mapbox-gl";
   - Function::(map: Object, event: Object)
 - **onZoom**: `Function` : Executed repeatedly during transitions between zoom levels
   - Function::(map: Object, event: Object)
-
+- **dragRotate** *(Default: `true`)*: `Boolean` Set to `false` to disable drag rotation, see [mapbox DragRotateHandler](https://www.mapbox.com/mapbox-gl-js/api/#DragRotateHandler) 
 
 ### Example
 
@@ -223,7 +224,6 @@ import { ScaleControl } from "react-mapbox-gl";
 # Popup
 
 The popup component allow you to display a popup tooltip on top of the map using mapbox-gl-js.
-You can define the content of the popup by using react component, it will be rendered as a DOM element using react-dom and injected in the popup.
 
 ### Import
 
@@ -233,10 +233,6 @@ import { Popup } from "react-mapbox-gl";
 
 ### Properties
 - **coordinates** *(required)*: `Array of Number` Display the popup at the given position.
-- **dangerouslySetInnerHTML**: `String` Set the content of the popup using string.
-- **text**: `String` Set the text content of the popup
-- **closeButton**: `Boolean` Add a cross button to close the popup
-- **closeOnClick**: `Boolean` Close the popup in click on it
 - **anchor**: `String` Set the anchor point of the popup, Possible values :
   - `top`
   - `bottom`
@@ -246,12 +242,22 @@ import { Popup } from "react-mapbox-gl";
   - `top-right`
   - `bottom-left`
   - `bottom-right`
-
+  - `null | undefined`: When not set, the anchor is automatically calculated to keep the content of the popup visible.
+- **offset** *(Default: 0)*: `Number | Array<Number> | Object` Set the offset of popup, where the tip of the popup will be pointing.
+  - When `Number` is passed, the popup will be offset by that number for all anchor positions.
+  - When an `Array<Number>` is passed (e.g. [-12, 30]), the popup will be offset by that point.
+  - When `Object` is passed, it must contain keys for different anchor positions and values as the offset (`Number` or `Array<Number>`)
+- **onClick**: `Function` Triggered whenever user click on the marker
+- **style**: `Object` Apply style to the marker container
 
 ### Example
 
 ```
-<Popup coordinates={[-0.13235092163085938,51.518250335096376]}>
+<Popup
+  coordinates={[-0.13235092163085938,51.518250335096376]}
+  offset={{
+    'bottom-left': [12, -38],  'bottom': [0, -38], 'bottom-right': [-12, -38]
+  }}>
   <h1>Popup</h1>
 </Popup>
 ```
@@ -269,20 +275,17 @@ import { Marker } from "react-mapbox-gl";
 
 ### Properties
 - **coordinates** *(required)*: `Array of Number` Display the popup at the given position.
-- **container**: `DOMElement` Use the given DOM element to render the children components in.
+- **anchor**: `String` Same as Popup's anchor property.
+- **offset**: `String` Same as Popup's offset property.
+- **onClick**: `Function` Triggered whenever user click on the marker
+- **style**: `Object` Apply style to the marker container
 
 ### Example
 
 ```
-const markerContainer = document.createElement('div');
-markerContainer.style.width = "400px";
-markerContainer.style.position = "absolute";
-
-...
-
 <Marker
-  container={markerContainer}
-  coordinates={[-0.2416815, 51.5285582]}>
-    <h1>TEST</h1>
+  coordinates={[-0.2416815, 51.5285582]}
+  anchor="bottom">
+  <img src={markerUrl}/>
 </Marker>
 ```
